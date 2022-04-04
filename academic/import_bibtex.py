@@ -1,5 +1,6 @@
 import calendar
 import os
+import pdb
 import re
 import subprocess
 import time
@@ -77,7 +78,7 @@ def parse_bibtex_entry(
     # Prepare YAML front matter for Markdown file.
     hugo = utils.hugo_in_docker_or_local()
     if not dry_run:
-        subprocess.call(f"{hugo} new {markdown_path}", shell=True)
+        subprocess.call(f"{hugo} new {bundle_path}", shell=True)
         if "docker-compose" in hugo:
             time.sleep(2)
 

@@ -1,6 +1,5 @@
 import calendar
 import os
-import pdb
 import re
 import subprocess
 import time
@@ -36,6 +35,7 @@ def import_bibtex(
         parser.customization = convert_to_unicode
         parser.ignore_nonstandard_types = False
         bib_database = bibtexparser.load(bibtex_file, parser=parser)
+        log.info(f"Creating {len(bib_database.entries)} entries")
         for entry in bib_database.entries:
             parse_bibtex_entry(
                 entry, pub_dir=pub_dir, featured=featured, overwrite=overwrite, normalize=normalize, dry_run=dry_run,
@@ -60,6 +60,10 @@ def parse_bibtex_entry(
     if not overwrite and os.path.isdir(bundle_path):
         log.warning(f"Skipping creation of {bundle_path} as it already exists. " f"To overwrite, add the `--overwrite` argument.")
         return
+    
+    if overwrite and os.path.isdir(bundle_path):
+        log.warning(f"Overwrite {bundle_path} as it already exists. ")
+        os.remove(f"{bundle_path}/index.md")
 
     # Create bundle dir.
     log.info(f"Creating folder {bundle_path}")
@@ -156,7 +160,18 @@ def parse_bibtex_entry(
         if sane_url[-4:].lower() == ".pdf":
             page.fm["url_pdf"] = sane_url
         else:
-            links += [{"name": "URL", "url": sane_url}]
+            links += [{"name": "Paper", "url": sane_url}]
+    
+    if "video" in entry:
+        sane_url = clean_bibtex_str(entry["video"])
+        links += [{"name": "Video", "url": sane_url}]
+    
+    if "website" in entry:
+        sane_url = clean_bibtex_str(entry["website"])
+        links += [{"name": "Website", "url": sane_url}]
+    
+    if "award" in entry:
+        page.fm["award"] = clean_bibtex_str(entry["award"])
 
     if links:
         page.fm["links"] = links
